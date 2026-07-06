@@ -1,0 +1,1333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iron Timer - Professional Gym Round Timer</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Space Grotesk', 'sans-serif'],
+              mono: ['Orbitron', 'monospace'],
+            },
+            colors: {
+              gym: {
+                dark: '#09090b',
+                card: '#18181b',
+                border: '#27272a',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Glowing & Athletic Layout Styles -->
+    <style>
+      /* Glowing text configurations for athletic intervals */
+      .glow-green {
+        text-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+        filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.4));
+      }
+      .glow-blue {
+        text-shadow: 0 0 15px rgba(6, 182, 212, 0.6);
+        filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.4));
+      }
+      .glow-amber {
+        text-shadow: 0 0 15px rgba(245, 158, 11, 0.6);
+        filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+      }
+      .glow-purple {
+        text-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+        filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
+      }
+      .glow-red {
+        text-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.4));
+      }
+
+      /* Base transition controls */
+      .transition-digital {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+    </style>
+  </head>
+  <body class="bg-[#09090b] text-zinc-100 min-h-screen flex flex-col justify-between py-6 px-4 sm:px-6 md:px-8 font-sans">
+    
+    <!-- Main Content Wrapper -->
+    <div class="max-w-6xl mx-auto w-full flex-1 flex flex-col">
+      
+      <!-- HEADER -->
+      <header class="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#27272a] pb-5 mb-6">
+        <div class="flex items-center gap-3">
+          <div class="bg-red-600/10 border border-red-500/30 text-red-500 p-2.5 rounded-xl animate-pulse">
+            <i data-lucide="dumbbell" class="h-6 w-6"></i>
+          </div>
+          <div>
+            <h1 class="font-display text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+              IRON <span class="text-red-500 font-extrabold tracking-wider">TIMER</span>
+            </h1>
+            <p class="text-xs text-zinc-500 font-sans mt-0.5">
+              Professional Round & Interval Gym Monitor
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <!-- Test Bell Trigger -->
+          <button
+            id="btn-test-bell"
+            class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-zinc-200 border border-zinc-700/50 rounded-lg cursor-pointer transition-all duration-200"
+            title="Test Bell audio output"
+          >
+            <i data-lucide="zap" class="h-3.5 w-3.5 text-red-400"></i>
+            Test Bell
+          </button>
+
+          <!-- Sound Toggle Button -->
+          <button
+            id="btn-toggle-sound"
+            class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-200 cursor-pointer bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+          >
+            <i data-lucide="volume-2" class="h-3.5 w-3.5" id="sound-icon"></i>
+            <span id="sound-text">Audio On</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- MAIN APP GRID -->
+      <main class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-auto py-4">
+        
+        <!-- LEFT COLUMN: DISPLAY & CONTROLS -->
+        <section class="lg:col-span-5 flex flex-col gap-6 justify-center items-center w-full">
+          
+          <!-- TIMER DISPLAY CONTAINER -->
+          <div 
+            id="timer-display-card"
+            class="relative w-full max-w-sm mx-auto bg-[#18181b] border border-zinc-800/80 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center transition-all duration-300 shadow-2xl"
+          >
+            <!-- Background Glow Aura -->
+            <div class="absolute inset-0 rounded-3xl opacity-30 blur-2xl pointer-events-none transition-all duration-500">
+              <div id="glow-aura" class="w-full h-full rounded-full transition-all duration-500"></div>
+            </div>
+
+            <!-- Circular Progress SVG -->
+            <div class="relative w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center">
+              <svg class="absolute inset-0 w-full h-full -rotate-90 select-none pointer-events-none" viewBox="0 0 260 260">
+                <!-- Static Background Track Ring -->
+                <circle
+                  cx="130"
+                  cy="130"
+                  r="120"
+                  class="stroke-zinc-800/80 fill-none"
+                  stroke-width="8"
+                />
+                <!-- Active Progress Arc Ring -->
+                <circle
+                  id="progress-ring"
+                  cx="130"
+                  cy="130"
+                  r="120"
+                  class="fill-none stroke-zinc-700 transition-all duration-200 ease-linear"
+                  stroke-width="8"
+                  stroke-dasharray="753.98"
+                  stroke-dashoffset="0"
+                  stroke-linecap="round"
+                />
+              </svg>
+
+              <!-- Central Digital Dashboard -->
+              <div class="flex flex-col items-center justify-center text-center z-10">
+                <!-- Phase Badge -->
+                <div class="mb-1">
+                  <span id="phase-badge" class="font-sans text-[10px] uppercase font-extrabold tracking-widest text-zinc-500 bg-zinc-950/80 px-2.5 py-1 border border-zinc-800/60 rounded-full">
+                    TIMER INACTIVE
+                  </span>
+                </div>
+
+                <!-- Active Title Statement -->
+                <div id="phase-title" class="font-display text-2xl font-black tracking-widest uppercase mt-2.5 mb-1 text-zinc-400">
+                  READY
+                </div>
+
+                <!-- Clock Display -->
+                <div 
+                  id="digital-clock"
+                  class="font-mono font-bold text-5xl sm:text-6xl tracking-tight select-all leading-none my-2 transition-digital text-zinc-400"
+                >
+                  03:00
+                </div>
+
+                <!-- Round Status Info -->
+                <div id="round-indicator-badge" class="mt-2.5 hidden items-center gap-1.5 bg-zinc-950/80 border border-zinc-800/60 px-3 py-1 rounded-full">
+                  <span class="text-[10px] font-sans text-zinc-400 font-semibold uppercase tracking-wider">Round</span>
+                  <span id="current-round-text" class="font-mono text-xs font-black text-white">1</span>
+                  <span class="text-zinc-600 text-xs font-mono">/</span>
+                  <span id="total-rounds-text" class="font-mono text-xs font-semibold text-zinc-400">12</span>
+                </div>
+
+                <!-- Trophy Indicator -->
+                <div id="trophy-indicator" class="mt-2 hidden flex-col items-center animate-bounce">
+                  <i data-lucide="trophy" class="h-6 w-6 text-yellow-400 mb-1"></i>
+                  <span class="text-[10px] font-sans text-yellow-500 font-bold uppercase tracking-wider">
+                    CHAMPION EFFORT
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Finish Strong Alert -->
+            <div id="warning-banner" class="mt-4 hidden items-center gap-1.5 animate-pulse text-amber-500 bg-amber-950/20 border border-amber-900/30 px-3 py-1 rounded-full text-xs">
+              <i data-lucide="flame" class="h-3.5 w-3.5"></i>
+              <span class="font-sans font-bold tracking-wide uppercase text-[10px]">Finish Strong!</span>
+            </div>
+          </div>
+
+          <!-- CONTROLLER BUTTONS -->
+          <div class="flex flex-col gap-4 w-full max-w-sm mx-auto">
+            <div class="flex items-center justify-center gap-3">
+              <!-- Reset -->
+              <button
+                id="btn-reset"
+                class="flex-1 flex items-center justify-center gap-2 py-3.5 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700/80 text-zinc-300 border border-zinc-800 rounded-2xl cursor-pointer font-display font-semibold text-sm transition-all hover:border-zinc-700"
+                title="Reset Timer"
+              >
+                <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                <span>Reset</span>
+              </button>
+
+              <!-- Main Start / Pause Trigger -->
+              <button
+                id="btn-start"
+                class="flex-[2] flex items-center justify-center gap-2.5 py-3.5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-zinc-950 rounded-2xl cursor-pointer font-display font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-950/20"
+              >
+                <i data-lucide="play" class="h-4.5 w-4.5 fill-current" id="start-btn-icon"></i>
+                <span id="start-btn-text">START FIGHT</span>
+              </button>
+
+              <!-- Skip Phase -->
+              <button
+                id="btn-skip"
+                class="hidden flex-1 flex items-center justify-center gap-2 py-3.5 bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-700/80 text-zinc-300 border border-zinc-800 rounded-2xl cursor-pointer font-display font-semibold text-sm transition-all hover:border-zinc-700"
+                title="Skip to Next Phase"
+              >
+                <i data-lucide="skip-forward" class="h-4 w-4"></i>
+                <span>Skip</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- WORKOUT TIMELINE PROGRESS GRID -->
+          <div id="timeline-card" class="w-full max-w-sm mx-auto bg-zinc-900/40 border border-zinc-800/50 rounded-2xl p-4 hidden flex-col gap-2.5 shadow-md">
+            <div class="flex justify-between items-center text-xs font-semibold text-zinc-400">
+              <span class="uppercase tracking-wider text-[10px]">Workout Timeline</span>
+              <span id="timeline-status-text" class="font-mono text-[11px] text-zinc-300">Round 1 of 12</span>
+            </div>
+            <!-- Grid of Round blocks (Will be injected by JS) -->
+            <div id="timeline-blocks-grid" class="flex flex-wrap gap-1.5 justify-center"></div>
+          </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: CONFIGURATION PANELS -->
+        <section class="lg:col-span-7 flex flex-col gap-6 w-full">
+          
+          <!-- CONFIGURATION CARD -->
+          <div class="relative bg-[#18181b] border border-zinc-800/80 rounded-2xl p-5 overflow-hidden shadow-xl" id="settings-panel">
+            
+            <!-- Active Lock Screen Overlay -->
+            <div id="settings-lock-screen" class="absolute inset-0 bg-zinc-950/85 backdrop-blur-sm z-30 hidden flex-col items-center justify-center text-center p-6 transition-all duration-300">
+              <i data-lucide="shield-alert" class="h-10 w-10 text-red-500 mb-3 animate-bounce"></i>
+              <h3 class="font-display font-bold text-white text-lg">Settings Locked</h3>
+              <p class="text-xs text-zinc-400 mt-1 max-w-[240px]">
+                The timer is active. Pause or reset the session to make adjustments.
+              </p>
+            </div>
+
+            <h2 class="font-display text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <i data-lucide="swords" class="h-4 w-4 text-red-500"></i>
+              Configure Workout
+            </h2>
+
+            <!-- Preset Sports Mode Selectors -->
+            <div class="grid grid-cols-3 gap-2.5 mb-6">
+              <button
+                id="preset-boxing"
+                class="flex flex-col items-center justify-center p-3 rounded-xl border transition-all cursor-pointer bg-red-500/10 border-red-500/50 text-red-400"
+              >
+                <span class="font-display font-bold text-xs tracking-wide">BOXING</span>
+                <span class="text-[10px] text-zinc-500 font-sans mt-0.5">12 Rds • 3:00</span>
+              </button>
+
+              <button
+                id="preset-mma"
+                class="flex flex-col items-center justify-center p-3 rounded-xl border transition-all cursor-pointer bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-zinc-400"
+              >
+                <span class="font-display font-bold text-xs tracking-wide">MMA</span>
+                <span class="text-[10px] text-zinc-500 font-sans mt-0.5">5 Rds • 5:00</span>
+              </button>
+
+              <button
+                id="preset-custom"
+                class="flex flex-col items-center justify-center p-3 rounded-xl border transition-all cursor-pointer bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-zinc-400"
+              >
+                <span class="font-display font-bold text-xs tracking-wide">CUSTOM</span>
+                <span class="text-[10px] text-zinc-500 font-sans mt-0.5">Adjust Below</span>
+              </button>
+            </div>
+
+            <!-- Individual Parameters Setup -->
+            <div class="space-y-4">
+              
+              <!-- Total Rounds -->
+              <div class="flex items-center justify-between bg-zinc-900/50 border border-zinc-800/40 p-3.5 rounded-xl">
+                <div>
+                  <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                    Total Rounds
+                  </label>
+                  <span class="text-[11px] text-zinc-500 font-sans">Number of work phases</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button
+                    id="btn-rounds-dec"
+                    class="h-9 w-9 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white rounded-lg flex items-center justify-center font-bold text-lg transition-colors cursor-pointer select-none"
+                  >
+                    -
+                  </button>
+                  <div id="rounds-display" class="w-12 text-center text-base font-mono font-bold text-white bg-zinc-950 py-1 border border-zinc-800 rounded-lg">
+                    12
+                  </div>
+                  <button
+                    id="btn-rounds-inc"
+                    class="h-9 w-9 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white rounded-lg flex items-center justify-center font-bold text-lg transition-colors cursor-pointer select-none"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <!-- Round Duration -->
+              <div class="flex flex-col bg-zinc-900/50 border border-zinc-800/40 p-3.5 rounded-xl">
+                <div class="flex justify-between items-center mb-2">
+                  <div>
+                    <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                      Round Duration
+                    </label>
+                    <span class="text-[11px] text-zinc-500 font-sans">Length of standard "Fight" phase</span>
+                  </div>
+                  <div id="round-duration-header-display" class="text-sm font-mono font-bold text-red-400 bg-red-950/20 px-2 py-0.5 border border-red-900/30 rounded-md">
+                    03:00
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mt-1.5">
+                  <!-- Minutes -->
+                  <div class="flex items-center justify-between bg-zinc-950 p-1.5 rounded-lg border border-zinc-800">
+                    <span class="text-[11px] font-bold text-zinc-500 ml-2 uppercase">Min</span>
+                    <div class="flex items-center gap-1">
+                      <button
+                        id="btn-round-min-dec"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-sm transition-colors cursor-pointer select-none"
+                      >
+                        -
+                      </button>
+                      <span id="round-min-display" class="w-6 text-center text-xs font-mono font-bold text-zinc-200">3</span>
+                      <button
+                        id="btn-round-min-inc"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-sm transition-colors cursor-pointer select-none"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Seconds -->
+                  <div class="flex items-center justify-between bg-zinc-950 p-1.5 rounded-lg border border-zinc-800">
+                    <span class="text-[11px] font-bold text-zinc-500 ml-2 uppercase">Sec</span>
+                    <div class="flex items-center gap-1">
+                      <button
+                        id="btn-round-sec-dec"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-xs transition-colors cursor-pointer select-none"
+                        title="-10 seconds"
+                      >
+                        -
+                      </button>
+                      <span id="round-sec-display" class="w-6 text-center text-xs font-mono font-bold text-zinc-200">00</span>
+                      <button
+                        id="btn-round-sec-inc"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-xs transition-colors cursor-pointer select-none"
+                        title="+10 seconds"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Break Duration -->
+              <div class="flex flex-col bg-zinc-900/50 border border-zinc-800/40 p-3.5 rounded-xl">
+                <div class="flex justify-between items-center mb-2">
+                  <div>
+                    <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                      Break Duration
+                    </label>
+                    <span class="text-[11px] text-zinc-500 font-sans">Rest period between rounds</span>
+                  </div>
+                  <div id="break-duration-header-display" class="text-sm font-mono font-bold text-cyan-400 bg-cyan-950/20 px-2 py-0.5 border border-cyan-900/30 rounded-md">
+                    01:00
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-1.5">
+                  <!-- Minutes -->
+                  <div class="flex items-center justify-between bg-zinc-950 p-1.5 rounded-lg border border-zinc-800">
+                    <span class="text-[11px] font-bold text-zinc-500 ml-2 uppercase">Min</span>
+                    <div class="flex items-center gap-1">
+                      <button
+                        id="btn-break-min-dec"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-sm transition-colors cursor-pointer select-none"
+                      >
+                        -
+                      </button>
+                      <span id="break-min-display" class="w-6 text-center text-xs font-mono font-bold text-zinc-200">1</span>
+                      <button
+                        id="btn-break-min-inc"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-sm transition-colors cursor-pointer select-none"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Seconds -->
+                  <div class="flex items-center justify-between bg-zinc-950 p-1.5 rounded-lg border border-zinc-800">
+                    <span class="text-[11px] font-bold text-zinc-500 ml-2 uppercase">Sec</span>
+                    <div class="flex items-center gap-1">
+                      <button
+                        id="btn-break-sec-dec"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-xs transition-colors cursor-pointer select-none"
+                        title="-10 seconds"
+                      >
+                        -
+                      </button>
+                      <span id="break-sec-display" class="w-6 text-center text-xs font-mono font-bold text-zinc-200">00</span>
+                      <button
+                        id="btn-break-sec-inc"
+                        class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-xs transition-colors cursor-pointer select-none"
+                        title="+10 seconds"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Prep Countdown Option -->
+              <div class="bg-zinc-900/50 border border-zinc-800/40 p-3.5 rounded-xl space-y-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider cursor-pointer select-none">
+                        Preparation Interval
+                      </label>
+                      <input
+                        id="toggle-prep"
+                        type="checkbox"
+                        checked
+                        class="w-4 h-4 text-purple-600 bg-zinc-900 border-zinc-700 rounded-sm focus:ring-purple-500 cursor-pointer"
+                      />
+                    </div>
+                    <span class="text-[11px] text-zinc-500 font-sans">Get gloves on & get in position</span>
+                  </div>
+
+                  <div id="prep-seconds-control" class="flex items-center gap-1.5 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+                    <button
+                      id="btn-prep-dec"
+                      class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-sm transition-colors cursor-pointer select-none"
+                      title="-5 seconds"
+                    >
+                      -
+                    </button>
+                    <span id="prep-secs-display" class="w-7 text-center text-xs font-mono font-bold text-purple-400">
+                      10s
+                    </span>
+                    <button
+                      id="btn-prep-inc"
+                      class="h-7 w-7 bg-zinc-800 hover:bg-zinc-700 text-white rounded-md flex items-center justify-center font-bold text-sm transition-colors cursor-pointer select-none"
+                      title="+5 seconds"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 10s Warning Claps -->
+              <div class="bg-zinc-900/50 border border-zinc-800/40 p-3.5 rounded-xl">
+                <div class="flex items-center justify-between">
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                      <label class="block text-xs font-bold text-zinc-300 uppercase tracking-wider cursor-pointer select-none">
+                        10s Warning Claps
+                      </label>
+                      <input
+                        id="toggle-warning"
+                        type="checkbox"
+                        checked
+                        class="w-4 h-4 text-red-600 bg-zinc-900 border-zinc-700 rounded-sm focus:ring-red-500 cursor-pointer"
+                      />
+                    </div>
+                    <span class="text-[11px] text-zinc-500 font-sans">Tick signal before round finishes</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- SESSION ESTIMATE CARD -->
+          <div class="bg-[#18181b] border border-zinc-800/80 rounded-2xl p-5 shadow-lg">
+            <h3 class="font-display text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+              <i data-lucide="activity" class="h-4 w-4 text-emerald-500"></i>
+              Session Estimate
+            </h3>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div class="bg-zinc-900/50 border border-zinc-800/40 p-3 rounded-xl text-center">
+                <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Total Duration</div>
+                <div id="est-total-duration" class="text-sm font-mono font-bold text-white mt-1">47m</div>
+              </div>
+
+              <div class="bg-zinc-900/50 border border-zinc-800/40 p-3 rounded-xl text-center">
+                <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Total Rounds</div>
+                <div id="est-total-rounds" class="text-sm font-mono font-bold text-white mt-1">12 Rounds</div>
+              </div>
+
+              <div class="bg-zinc-900/50 border border-zinc-800/40 p-3 rounded-xl text-center col-span-2 sm:col-span-1">
+                <div class="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Active Pace</div>
+                <div class="text-sm font-mono font-bold text-red-400 mt-1">High Intensity</div>
+              </div>
+            </div>
+
+            <!-- Pro Tips block -->
+            <div class="mt-5 pt-4 border-t border-zinc-800/50 flex gap-3 text-xs text-zinc-400">
+              <i data-lucide="info" class="h-5 w-5 text-zinc-500 shrink-0"></i>
+              <p class="leading-relaxed font-sans text-[11px] text-zinc-400">
+                <strong class="text-zinc-200">Pro-Tip:</strong> The 10-second warning signal plays a rapid double woodblock clap. Gyms use this to signal a high-intensity "flurry" or final combination burst before the bell sounds.
+              </p>
+            </div>
+          </div>
+
+        </section>
+      </main>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="max-w-6xl mx-auto w-full text-center mt-10 border-t border-zinc-800/40 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-600 font-sans">
+      <div>
+        © 2026 Iron Timer • Designed for Martial Artists, Boxers, & Coaches.
+      </div>
+      <div class="flex items-center gap-1">
+        <span>Made offline-ready with synthetic Web Audio API</span>
+        <i data-lucide="heart" class="h-3 w-3 text-red-600 fill-current"></i>
+      </div>
+    </footer>
+
+    <!-- SYNTHETIC AUDIO & RUNTIME LOGIC -->
+    <script>
+      // 1. Core State Object
+      const state = {
+        config: {
+          roundMinutes: 3,
+          roundSeconds: 0,
+          breakMinutes: 1,
+          breakSeconds: 0,
+          totalRounds: 12,
+          prepDuration: 10,
+          enablePrep: true,
+          enableWarning: true,
+          soundEnabled: true,
+        },
+        sportMode: 'boxing', // 'boxing' | 'mma' | 'custom'
+        
+        // Runtime variables
+        currentPhase: 'idle', // 'idle' | 'preparation' | 'fight' | 'break' | 'completed'
+        currentRound: 1,
+        timeLeft: 0,
+        phaseDuration: 0,
+        isPaused: true,
+        isRunning: false,
+        timerIntervalId: null,
+      };
+
+      // 2. Synthesized Web Audio API Controller
+      let audioCtx = null;
+
+      function initAudio() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function playBoxingBell(isDouble = false) {
+        if (!state.config.soundEnabled) return;
+        const ctx = initAudio();
+        
+        const playStrike = (timeOffset) => {
+          const now = ctx.currentTime + timeOffset;
+          const frequencies = [600, 800, 1040, 1280, 1600, 2080];
+          const decayFactor = [1.8, 1.5, 1.2, 0.8, 0.6, 0.4];
+
+          const masterGain = ctx.createGain();
+          masterGain.gain.setValueAtTime(0, now);
+          masterGain.gain.linearRampToValueAtTime(0.5, now + 0.005); // Attack
+          masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.0); // Ring decay
+          masterGain.connect(ctx.destination);
+
+          frequencies.forEach((freq, index) => {
+            const osc = ctx.createOscillator();
+            const oscGain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.linearRampToValueAtTime(freq - (index % 2 === 0 ? 3 : -3), now + 1.5);
+
+            const volume = index === 0 ? 0.7 : 0.4 / (index + 1);
+            oscGain.gain.setValueAtTime(volume, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.0001, now + decayFactor[index]);
+
+            osc.connect(oscGain);
+            oscGain.connect(masterGain);
+
+            osc.start(now);
+            osc.stop(now + 2.5);
+          });
+        };
+
+        if (isDouble) {
+          playStrike(0);
+          playStrike(0.4);
+        } else {
+          playStrike(0);
+        }
+      }
+
+      function playWarningTick() {
+        if (!state.config.soundEnabled) return;
+        const ctx = initAudio();
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1200, now);
+        osc.frequency.exponentialRampToValueAtTime(700, now + 0.06);
+
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.1);
+      }
+
+      function playCountdownBeep(isHigh = false) {
+        if (!state.config.soundEnabled) return;
+        const ctx = initAudio();
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(isHigh ? 1600 : 1000, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+
+      function playCompletionTriumph() {
+        if (!state.config.soundEnabled) return;
+        const ctx = initAudio();
+        const now = ctx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major Chord
+
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const noteStart = now + (idx * 0.15);
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, noteStart);
+
+          gain.gain.setValueAtTime(0, noteStart);
+          gain.gain.linearRampToValueAtTime(0.2, noteStart + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 1.8);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(noteStart);
+          osc.stop(noteStart + 2.0);
+        });
+      }
+
+      // 3. UI Dom Elements Cache
+      const els = {
+        btnTestBell: document.getElementById('btn-test-bell'),
+        btnToggleSound: document.getElementById('btn-toggle-sound'),
+        soundIcon: document.getElementById('sound-icon'),
+        soundText: document.getElementById('sound-text'),
+        
+        // Timer elements
+        timerDisplayCard: document.getElementById('timer-display-card'),
+        glowAura: document.getElementById('glow-aura'),
+        progressRing: document.getElementById('progress-ring'),
+        phaseBadge: document.getElementById('phase-badge'),
+        phaseTitle: document.getElementById('phase-title'),
+        digitalClock: document.getElementById('digital-clock'),
+        roundIndicatorBadge: document.getElementById('round-indicator-badge'),
+        currentRoundText: document.getElementById('current-round-text'),
+        totalRoundsText: document.getElementById('total-rounds-text'),
+        trophyIndicator: document.getElementById('trophy-indicator'),
+        warningBanner: document.getElementById('warning-banner'),
+
+        // Controls
+        btnReset: document.getElementById('btn-reset'),
+        btnStart: document.getElementById('btn-start'),
+        startBtnIcon: document.getElementById('start-btn-icon'),
+        startBtnText: document.getElementById('start-btn-text'),
+        btnSkip: document.getElementById('btn-skip'),
+        timelineCard: document.getElementById('timeline-card'),
+        timelineStatusText: document.getElementById('timeline-status-text'),
+        timelineBlocksGrid: document.getElementById('timeline-blocks-grid'),
+
+        // Settings panel
+        settingsLockScreen: document.getElementById('settings-lock-screen'),
+        presetBoxing: document.getElementById('preset-boxing'),
+        presetMma: document.getElementById('preset-mma'),
+        presetCustom: document.getElementById('preset-custom'),
+        
+        roundsDisplay: document.getElementById('rounds-display'),
+        btnRoundsDec: document.getElementById('btn-rounds-dec'),
+        btnRoundsInc: document.getElementById('btn-rounds-inc'),
+
+        roundDurationHeaderDisplay: document.getElementById('round-duration-header-display'),
+        btnRoundMinDec: document.getElementById('btn-round-min-dec'),
+        roundMinDisplay: document.getElementById('round-min-display'),
+        btnRoundMinInc: document.getElementById('btn-round-min-inc'),
+        btnRoundSecDec: document.getElementById('btn-round-sec-dec'),
+        roundSecDisplay: document.getElementById('round-sec-display'),
+        btnRoundSecInc: document.getElementById('btn-round-sec-inc'),
+
+        breakDurationHeaderDisplay: document.getElementById('break-duration-header-display'),
+        btnBreakMinDec: document.getElementById('btn-break-min-dec'),
+        breakMinDisplay: document.getElementById('break-min-display'),
+        btnBreakMinInc: document.getElementById('btn-break-min-inc'),
+        btnBreakSecDec: document.getElementById('btn-break-sec-dec'),
+        breakSecDisplay: document.getElementById('break-sec-display'),
+        btnBreakSecInc: document.getElementById('btn-break-sec-inc'),
+
+        togglePrep: document.getElementById('toggle-prep'),
+        prepSecondsControl: document.getElementById('prep-seconds-control'),
+        btnPrepDec: document.getElementById('btn-prep-dec'),
+        prepSecsDisplay: document.getElementById('prep-secs-display'),
+        btnPrepInc: document.getElementById('btn-prep-inc'),
+
+        toggleWarning: document.getElementById('toggle-warning'),
+
+        // Estimates
+        estTotalDuration: document.getElementById('est-total-duration'),
+        estTotalRounds: document.getElementById('est-total-rounds'),
+      };
+
+      // 4. Formatting Utilities
+      function formatTime(totalSecs) {
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+
+      function calculateTotalTime() {
+        const roundTime = (state.config.roundMinutes * 60 + state.config.roundSeconds) * state.config.totalRounds;
+        const breakTime = (state.config.breakMinutes * 60 + state.config.breakSeconds) * (state.config.totalRounds - 1);
+        const prepTime = state.config.enablePrep ? state.config.prepDuration : 0;
+        const totalSecs = roundTime + breakTime + prepTime;
+        
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        return `${mins}m ${secs > 0 ? secs + 's' : ''}`;
+      }
+
+      // 5. Dynamic Renderer (Reflects State into DOM)
+      function render() {
+        // Toggle sound button appearance
+        if (state.config.soundEnabled) {
+          els.btnToggleSound.className = "flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-200 cursor-pointer bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+          els.soundText.innerText = "Audio On";
+          els.soundIcon.setAttribute('data-lucide', 'volume-2');
+        } else {
+          els.btnToggleSound.className = "flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg border transition-all duration-200 cursor-pointer bg-zinc-800/80 hover:bg-zinc-800 text-zinc-400 border-zinc-700/50";
+          els.soundText.innerText = "Muted";
+          els.soundIcon.setAttribute('data-lucide', 'volume-x');
+        }
+
+        // Lock Settings overlay if timer is running and active
+        const isCurrentlyActive = state.isRunning && !state.isPaused;
+        if (isCurrentlyActive) {
+          els.settingsLockScreen.classList.remove('hidden');
+          els.settingsLockScreen.classList.add('flex');
+        } else {
+          els.settingsLockScreen.classList.add('hidden');
+          els.settingsLockScreen.classList.remove('flex');
+        }
+
+        // Configure Sports Presets Highlights
+        els.presetBoxing.className = `flex flex-col items-center justify-center p-3 rounded-xl border transition-all cursor-pointer ${state.sportMode === 'boxing' ? 'bg-red-500/10 border-red-500/50 text-red-400' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-zinc-400'}`;
+        els.presetMma.className = `flex flex-col items-center justify-center p-3 rounded-xl border transition-all cursor-pointer ${state.sportMode === 'mma' ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-zinc-400'}`;
+        els.presetCustom.className = `flex flex-col items-center justify-center p-3 rounded-xl border transition-all cursor-pointer ${state.sportMode === 'custom' ? 'bg-purple-500/10 border-purple-500/50 text-purple-400' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-zinc-400'}`;
+
+        // Config inputs sync
+        els.roundsDisplay.innerText = state.config.totalRounds;
+        els.roundDurationHeaderDisplay.innerText = `${state.config.roundMinutes.toString().padStart(2, '0')}:${state.config.roundSeconds.toString().padStart(2, '0')}`;
+        els.roundMinDisplay.innerText = state.config.roundMinutes;
+        els.roundSecDisplay.innerText = state.config.roundSeconds.toString().padStart(2, '0');
+
+        els.breakDurationHeaderDisplay.innerText = `${state.config.breakMinutes.toString().padStart(2, '0')}:${state.config.breakSeconds.toString().padStart(2, '0')}`;
+        els.breakMinDisplay.innerText = state.config.breakMinutes;
+        els.breakSecDisplay.innerText = state.config.breakSeconds.toString().padStart(2, '0');
+
+        els.togglePrep.checked = state.config.enablePrep;
+        if (state.config.enablePrep) {
+          els.prepSecondsControl.classList.remove('hidden');
+          els.prepSecondsControl.classList.add('flex');
+        } else {
+          els.prepSecondsControl.classList.add('hidden');
+          els.prepSecondsControl.classList.remove('flex');
+        }
+        els.prepSecsDisplay.innerText = `${state.config.prepDuration}s`;
+        els.toggleWarning.checked = state.config.enableWarning;
+
+        // Estimates sync
+        els.estTotalDuration.innerText = calculateTotalTime();
+        els.estTotalRounds.innerText = `${state.config.totalRounds} Rounds`;
+
+        // Start button configuration
+        if (!state.isRunning || state.isPaused) {
+          els.btnStart.className = "flex-[2] flex items-center justify-center gap-2.5 py-3.5 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-zinc-950 rounded-2xl cursor-pointer font-display font-black text-sm tracking-wide transition-all shadow-lg shadow-emerald-950/20";
+          els.startBtnText.innerText = state.isPaused && state.currentPhase !== 'idle' ? "RESUME" : "START FIGHT";
+          els.startBtnIcon.setAttribute('data-lucide', 'play');
+        } else {
+          els.btnStart.className = "flex-[2] flex items-center justify-center gap-2.5 py-3.5 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-zinc-950 rounded-2xl cursor-pointer font-display font-black text-sm tracking-wide transition-all shadow-lg shadow-amber-950/20";
+          els.startBtnText.innerText = "PAUSE TIMER";
+          els.startBtnIcon.setAttribute('data-lucide', 'pause');
+        }
+
+        // Skip button show conditions
+        if (state.currentPhase !== 'idle' && state.currentPhase !== 'completed') {
+          els.btnSkip.classList.remove('hidden');
+        } else {
+          els.btnSkip.classList.add('hidden');
+        }
+
+        // Visual design elements based on active phase
+        const phase = state.currentPhase;
+        
+        // Hide/Show Round Indicators & Trophy
+        if (phase === 'idle' || phase === 'completed') {
+          els.roundIndicatorBadge.classList.add('hidden');
+          els.roundIndicatorBadge.classList.remove('flex');
+        } else {
+          els.roundIndicatorBadge.classList.remove('hidden');
+          els.roundIndicatorBadge.classList.add('flex');
+          els.currentRoundText.innerText = state.currentRound;
+          els.totalRoundsText.innerText = state.config.totalRounds;
+        }
+
+        if (phase === 'completed') {
+          els.trophyIndicator.classList.remove('hidden');
+          els.trophyIndicator.classList.add('flex');
+        } else {
+          els.trophyIndicator.classList.add('hidden');
+          els.trophyIndicator.classList.remove('flex');
+        }
+
+        // Show/Hide warning finish strong banner
+        if (phase === 'fight' && state.timeLeft <= 10 && state.timeLeft > 0) {
+          els.warningBanner.classList.remove('hidden');
+          els.warningBanner.classList.add('flex');
+        } else {
+          els.warningBanner.classList.add('hidden');
+          els.warningBanner.classList.remove('flex');
+        }
+
+        // Render clock digits
+        if (phase === 'completed') {
+          els.digitalClock.innerText = "00:00";
+        } else {
+          els.digitalClock.innerText = formatTime(state.timeLeft);
+        }
+
+        // Change card background tints and neon glows dynamically
+        els.timerDisplayCard.className = "relative w-full max-w-sm mx-auto bg-[#18181b] border rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center transition-all duration-300 shadow-2xl ";
+        els.glowAura.className = "w-full h-full rounded-full transition-all duration-500 ";
+        els.phaseTitle.className = "font-display text-2xl font-black tracking-widest uppercase mt-2.5 mb-1 ";
+        els.digitalClock.className = "font-mono font-bold text-5xl sm:text-6xl tracking-tight select-all leading-none my-2 transition-digital ";
+
+        if (state.isPaused && phase !== 'idle' && phase !== 'completed') {
+          els.digitalClock.className += "text-zinc-500 animate-pulse";
+        }
+
+        if (phase === 'preparation') {
+          els.timerDisplayCard.className += "border-purple-500/20 bg-purple-500/5 glow-bg-purple";
+          els.glowAura.className += "bg-purple-500/10";
+          els.phaseBadge.innerText = "Preparation Interval";
+          els.phaseBadge.className = "font-sans text-[10px] uppercase font-extrabold tracking-widest text-purple-400 bg-purple-950/40 px-2.5 py-1 border border-purple-500/30 rounded-full";
+          els.phaseTitle.className += "text-purple-500 glow-purple";
+          if (!state.isPaused) els.digitalClock.className += "text-purple-500 glow-purple";
+          els.progressRing.className = "fill-none stroke-purple-500 transition-all duration-200 ease-linear";
+        } 
+        else if (phase === 'fight') {
+          els.timerDisplayCard.className += "border-emerald-500/20 bg-emerald-500/5 glow-bg-green";
+          els.glowAura.className += "bg-emerald-500/10";
+          els.phaseBadge.innerText = "WORK ROUND";
+          els.phaseBadge.className = "font-sans text-[10px] uppercase font-extrabold tracking-widest text-emerald-400 bg-emerald-950/40 px-2.5 py-1 border border-emerald-500/30 rounded-full";
+          els.phaseTitle.className += "text-emerald-500 glow-green";
+          if (!state.isPaused) els.digitalClock.className += "text-emerald-500 glow-green";
+          els.progressRing.className = "fill-none stroke-emerald-500 transition-all duration-200 ease-linear";
+        } 
+        else if (phase === 'break') {
+          els.timerDisplayCard.className += "border-cyan-500/20 bg-cyan-500/5 glow-bg-blue";
+          els.glowAura.className += "bg-cyan-500/10";
+          els.phaseBadge.innerText = "BREAK INTERVAL";
+          els.phaseBadge.className = "font-sans text-[10px] uppercase font-extrabold tracking-widest text-cyan-400 bg-cyan-950/40 px-2.5 py-1 border border-cyan-500/30 rounded-full";
+          els.phaseTitle.className += "text-cyan-400 glow-blue";
+          if (!state.isPaused) els.digitalClock.className += "text-cyan-400 glow-blue";
+          els.progressRing.className = "fill-none stroke-cyan-400 transition-all duration-200 ease-linear";
+        } 
+        else if (phase === 'completed') {
+          els.timerDisplayCard.className += "border-yellow-500/30 bg-yellow-500/10 glow-bg-amber";
+          els.glowAura.className += "bg-yellow-500/20";
+          els.phaseBadge.innerText = "TRAINING COMPLETED";
+          els.phaseBadge.className = "font-sans text-[10px] uppercase font-extrabold tracking-widest text-yellow-500 bg-yellow-950/40 px-2.5 py-1 border border-yellow-500/30 rounded-full";
+          els.phaseTitle.className += "text-yellow-400 glow-amber";
+          els.digitalClock.className += "text-yellow-400 glow-amber";
+          els.progressRing.className = "fill-none stroke-yellow-400 transition-all duration-200 ease-linear";
+        } 
+        else {
+          // Idle state
+          els.timerDisplayCard.className += "border-zinc-800 bg-transparent";
+          els.phaseBadge.innerText = "TIMER INACTIVE";
+          els.phaseBadge.className = "font-sans text-[10px] uppercase font-extrabold tracking-widest text-zinc-500 bg-zinc-950/80 px-2.5 py-1 border border-zinc-800/60 rounded-full";
+          els.phaseTitle.className += "text-zinc-400";
+          els.digitalClock.className += "text-zinc-400";
+          els.progressRing.className = "fill-none stroke-zinc-700 transition-all duration-200 ease-linear";
+        }
+
+        // SVG Ring calculations
+        const circumference = 753.98; // 2 * pi * 120
+        let ratio = 0;
+        if (phase !== 'idle' && phase !== 'completed' && state.phaseDuration > 0) {
+          ratio = state.timeLeft / state.phaseDuration;
+        } else if (phase === 'completed') {
+          ratio = 1.0;
+        }
+        const offset = circumference - (ratio * circumference);
+        els.progressRing.setAttribute('stroke-dashoffset', offset);
+
+        // Timeline Blocks Sync
+        if (phase === 'idle') {
+          els.timelineCard.classList.add('hidden');
+          els.timelineCard.classList.remove('flex');
+        } else {
+          els.timelineCard.classList.remove('hidden');
+          els.timelineCard.classList.add('flex');
+          
+          if (phase === 'completed') {
+            els.timelineStatusText.innerText = "Workout Finished";
+          } else {
+            els.timelineStatusText.innerText = `Round ${state.currentRound} of ${state.config.totalRounds}`;
+          }
+
+          // Build round indicators blocks inside the flexbox container
+          let blocksHtml = '';
+          for (let i = 1; i <= state.config.totalRounds; i++) {
+            const isCompleted = i < state.currentRound || phase === 'completed';
+            const isCurrent = i === state.currentRound && phase !== 'completed';
+            
+            let blockClass = "h-7 w-7 text-[10px] font-mono font-bold flex items-center justify-center rounded-lg border transition-all duration-300 select-none ";
+            
+            if (isCompleted) {
+              blockClass += "bg-emerald-600/30 border-emerald-500/30 text-emerald-400";
+            } else if (isCurrent) {
+              if (phase === 'fight') {
+                blockClass += "bg-emerald-500 border-emerald-400 text-zinc-950 ring-2 ring-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.5)]";
+              } else if (phase === 'break') {
+                blockClass += "bg-cyan-500 border-cyan-400 text-zinc-950 ring-2 ring-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-pulse";
+              } else if (phase === 'preparation') {
+                blockClass += "bg-purple-500 border-purple-400 text-zinc-950 ring-2 ring-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.5)]";
+              }
+            } else {
+              blockClass += "bg-zinc-800 border-zinc-700/60 text-zinc-500";
+            }
+
+            blocksHtml += `<div class="${blockClass}" title="Round ${i}">${i}</div>`;
+          }
+          els.timelineBlocksGrid.innerHTML = blocksHtml;
+        }
+
+        // Refresh lucide icons rendered in standard templates
+        lucide.createIcons();
+      }
+
+      // 6. Action triggers & state transformers
+      function changeSportMode(mode) {
+        state.sportMode = mode;
+        if (mode === 'boxing') {
+          state.config.roundMinutes = 3;
+          state.config.roundSeconds = 0;
+          state.config.breakMinutes = 1;
+          state.config.breakSeconds = 0;
+          state.config.totalRounds = 12;
+        } else if (mode === 'mma') {
+          state.config.roundMinutes = 5;
+          state.config.roundSeconds = 0;
+          state.config.breakMinutes = 1;
+          state.config.breakSeconds = 0;
+          state.config.totalRounds = 5;
+        }
+        render();
+      }
+
+      function clampValue(val, min, max) {
+        return Math.max(min, Math.min(max, val));
+      }
+
+      // 7. Core countdown interval loop
+      function startTimerLoop() {
+        if (state.timerIntervalId) return;
+
+        state.timerIntervalId = setInterval(() => {
+          if (state.isPaused || !state.isRunning) return;
+
+          state.timeLeft -= 1;
+
+          if (state.timeLeft <= 0) {
+            state.timeLeft = 0;
+            handlePhaseTransition();
+          } else {
+            // Live sound cues
+            const currentSec = state.timeLeft;
+            if (state.currentPhase === 'fight') {
+              if (currentSec === 10 && state.config.enableWarning) {
+                playWarningTick();
+                setTimeout(() => {
+                  if (!state.isPaused && state.isRunning) playWarningTick();
+                }, 250);
+              } else if (currentSec <= 3 && currentSec > 0) {
+                playCountdownBeep(false);
+              }
+            } else if (state.currentPhase === 'preparation' || state.currentPhase === 'break') {
+              if (currentSec <= 3 && currentSec > 0) {
+                playCountdownBeep(false);
+              }
+            }
+          }
+          render();
+        }, 1000);
+      }
+
+      function stopTimerLoop() {
+        if (state.timerIntervalId) {
+          clearInterval(state.timerIntervalId);
+          state.timerIntervalId = null;
+        }
+      }
+
+      // 8. Phase transitions engine
+      function handlePhaseTransition() {
+        const phase = state.currentPhase;
+
+        if (phase === 'preparation') {
+          // Prep finished -> Round 1 fight
+          state.currentPhase = 'fight';
+          const dur = state.config.roundMinutes * 60 + state.config.roundSeconds;
+          state.phaseDuration = dur;
+          state.timeLeft = dur;
+          playBoxingBell(false);
+        } 
+        else if (phase === 'fight') {
+          if (state.currentRound >= state.config.totalRounds) {
+            // Entire session complete
+            state.currentPhase = 'completed';
+            state.isRunning = false;
+            state.isPaused = true;
+            stopTimerLoop();
+            playCompletionTriumph();
+          } else {
+            // End of work round -> Rest break
+            state.currentPhase = 'break';
+            const dur = state.config.breakMinutes * 60 + state.config.breakSeconds;
+            state.phaseDuration = dur;
+            state.timeLeft = dur;
+            playBoxingBell(true);
+          }
+        } 
+        else if (phase === 'break') {
+          // Break finished -> Next Round fight
+          state.currentRound += 1;
+          state.currentPhase = 'fight';
+          const dur = state.config.roundMinutes * 60 + state.config.roundSeconds;
+          state.phaseDuration = dur;
+          state.timeLeft = dur;
+          playBoxingBell(false);
+        }
+      }
+
+      // 9. Controller operations
+      function handleStartFight() {
+        initAudio();
+
+        if (state.currentPhase === 'idle') {
+          state.currentRound = 1;
+          state.isRunning = true;
+          state.isPaused = false;
+
+          if (state.config.enablePrep && state.config.prepDuration > 0) {
+            state.currentPhase = 'preparation';
+            state.timeLeft = state.config.prepDuration;
+            state.phaseDuration = state.config.prepDuration;
+            playCountdownBeep(true);
+          } else {
+            state.currentPhase = 'fight';
+            const dur = state.config.roundMinutes * 60 + state.config.roundSeconds;
+            state.timeLeft = dur;
+            state.phaseDuration = dur;
+            playBoxingBell(false);
+          }
+          startTimerLoop();
+        } else {
+          state.isPaused = false;
+          startTimerLoop();
+        }
+        render();
+      }
+
+      function handlePauseFight() {
+        state.isPaused = true;
+        render();
+      }
+
+      function handleResetFight() {
+        state.isRunning = false;
+        state.isPaused = true;
+        state.currentPhase = 'idle';
+        state.currentRound = 1;
+        state.timeLeft = 0;
+        state.phaseDuration = 0;
+        stopTimerLoop();
+        render();
+      }
+
+      function handleSkipFight() {
+        initAudio();
+        state.timeLeft = 0;
+        handlePhaseTransition();
+        render();
+      }
+
+      // 10. Attaching DOM Listeners
+      window.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+        render();
+
+        // Presets
+        els.presetBoxing.addEventListener('click', () => {
+          if (state.isRunning && !state.isPaused) return;
+          changeSportMode('boxing');
+        });
+        els.presetMma.addEventListener('click', () => {
+          if (state.isRunning && !state.isPaused) return;
+          changeSportMode('mma');
+        });
+        els.presetCustom.addEventListener('click', () => {
+          if (state.isRunning && !state.isPaused) return;
+          changeSportMode('custom');
+        });
+
+        // Audio controls
+        els.btnTestBell.addEventListener('click', () => {
+          initAudio();
+          playBoxingBell(false);
+        });
+
+        els.btnToggleSound.addEventListener('click', () => {
+          initAudio();
+          state.config.soundEnabled = !state.config.soundEnabled;
+          render();
+        });
+
+        // Config increments / decrements
+        const triggerCustomConfigChange = (updateFn) => {
+          if (state.isRunning && !state.isPaused) return;
+          state.sportMode = 'custom';
+          updateFn();
+          render();
+        };
+
+        // Round counts
+        els.btnRoundsDec.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.totalRounds = clampValue(state.config.totalRounds - 1, 1, 99);
+          });
+        });
+        els.btnRoundsInc.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.totalRounds = clampValue(state.config.totalRounds + 1, 1, 99);
+          });
+        });
+
+        // Round min
+        els.btnRoundMinDec.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.roundMinutes = clampValue(state.config.roundMinutes - 1, 0, 59);
+          });
+        });
+        els.btnRoundMinInc.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.roundMinutes = clampValue(state.config.roundMinutes + 1, 0, 59);
+          });
+        });
+
+        // Round sec
+        els.btnRoundSecDec.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            let nextSec = state.config.roundSeconds - 10;
+            if (nextSec < 0) {
+              nextSec = 50;
+              state.config.roundMinutes = clampValue(state.config.roundMinutes - 1, 0, 59);
+            }
+            state.config.roundSeconds = clampValue(nextSec, 0, 59);
+          });
+        });
+        els.btnRoundSecInc.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            let nextSec = state.config.roundSeconds + 10;
+            if (nextSec >= 60) {
+              nextSec = 0;
+              state.config.roundMinutes = clampValue(state.config.roundMinutes + 1, 0, 59);
+            }
+            state.config.roundSeconds = clampValue(nextSec, 0, 59);
+          });
+        });
+
+        // Break min
+        els.btnBreakMinDec.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.breakMinutes = clampValue(state.config.breakMinutes - 1, 0, 59);
+          });
+        });
+        els.btnBreakMinInc.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.breakMinutes = clampValue(state.config.breakMinutes + 1, 0, 59);
+          });
+        });
+
+        // Break sec
+        els.btnBreakSecDec.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            let nextSec = state.config.breakSeconds - 10;
+            if (nextSec < 0) {
+              nextSec = 50;
+              state.config.breakMinutes = clampValue(state.config.breakMinutes - 1, 0, 59);
+            }
+            state.config.breakSeconds = clampValue(nextSec, 0, 59);
+          });
+        });
+        els.btnBreakSecInc.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            let nextSec = state.config.breakSeconds + 10;
+            if (nextSec >= 60) {
+              nextSec = 0;
+              state.config.breakMinutes = clampValue(state.config.breakMinutes + 1, 0, 59);
+            }
+            state.config.breakSeconds = clampValue(nextSec, 0, 59);
+          });
+        });
+
+        // Prep toggle & times
+        els.togglePrep.addEventListener('change', (e) => {
+          triggerCustomConfigChange(() => {
+            state.config.enablePrep = e.target.checked;
+          });
+        });
+        els.btnPrepDec.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.prepDuration = clampValue(state.config.prepDuration - 5, 0, 60);
+          });
+        });
+        els.btnPrepInc.addEventListener('click', () => {
+          triggerCustomConfigChange(() => {
+            state.config.prepDuration = clampValue(state.config.prepDuration + 5, 0, 60);
+          });
+        });
+
+        // 10s warning toggle
+        els.toggleWarning.addEventListener('change', (e) => {
+          triggerCustomConfigChange(() => {
+            state.config.enableWarning = e.target.checked;
+          });
+        });
+
+        // Start / Pause toggle action
+        els.btnStart.addEventListener('click', () => {
+          if (!state.isRunning || state.isPaused) {
+            handleStartFight();
+          } else {
+            handlePauseFight();
+          }
+        });
+
+        els.btnReset.addEventListener('click', () => {
+          handleResetFight();
+        });
+
+        els.btnSkip.addEventListener('click', () => {
+          handleSkipFight();
+        });
+
+      });
+    </script>
+  </body>
+</html>
